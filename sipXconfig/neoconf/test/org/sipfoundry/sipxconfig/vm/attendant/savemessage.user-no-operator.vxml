@@ -57,7 +57,7 @@
     <var name="call_disconnected" expr="'no'" />
 
     <!-- Default "Operator" destination for transfer -->
-    <var name="xfer_uri" expr="'sip:0@{DOMAIN}'" />
+    <var name="xfer_uri" expr="operatoraddr" />
 
     <!-- Default audio on transfer -->
     <var name="xfer_audio" expr="mediaserverurl + promptsalias + 'please_hold.wav'" />
