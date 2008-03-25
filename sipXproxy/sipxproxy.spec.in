@@ -37,6 +37,7 @@ and AAA services.
 
 %package cdr
 Requires: %name >= %version
+Requires: stunnel
 Requires: ruby
 Requires: ruby-dbi
 
@@ -111,7 +112,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/upgrade2mergedproxy
 %attr(755,root,root) %{_bindir}/sipXproxy
 %attr(755,root,root) %{_bindir}/%name-config
-%attr(755,root,root) %{_bindir}/sipxha-distrib.sh
 %attr(755,root,root) %{_datadir}/sipx/schema/forwardingrules.xsd
 
 %attr(755,root,root) %{_libdir}/authplugins/libEnforceAuthRules.la
@@ -171,12 +171,15 @@ pkg-upgrade --previous %{previous_archive} --current %{current_archive}
 %attr(755,root,root) %{_sysconfdir}/sipxpbx/setup.d/sipxcallresolver-setup
 
 %config(noreplace) %attr(644,@SIPXPBXUSER@,@SIPXPBXGROUP@) %{_sysconfdir}/sipxpbx/callresolver-config.in
+%config(noreplace) %attr(644,@SIPXPBXUSER@,@SIPXPBXGROUP@) %{_sysconfdir}/sipxpbx/callresolver-agent-config.in
 %config(noreplace) %attr(644,@SIPXPBXUSER@,@SIPXPBXGROUP@) %{_sysconfdir}/sipxpbx/process.d/sipxcallresolver.process.xml
+%config(noreplace) %attr(644,@SIPXPBXUSER@,@SIPXPBXGROUP@) %{_sysconfdir}/sipxpbx/process.d/callresolver-agent.process.xml
 %config(noreplace) %attr(644,@SIPXPBXUSER@,@SIPXPBXGROUP@) %{_sysconfdir}/sipxpbx/cdr/*
 
 %dir %attr(755,@SIPXPBXUSER@,@SIPXPBXGROUP@) %{_sysconfdir}/sipxpbx/cdr
 %attr(755,root,root) %{sipxpbxvarlib}/sipxcallresolver-2.0.0.gem
 %attr(755,root,root) %{_bindir}/sipxcallresolver.sh
+%attr(755,root,root) %{_bindir}/sipxcallresolver-agent.sh
 
 %{upgrade_archive_dir}/%{this_archive_cdr}
 # Where does this come from in the main package?

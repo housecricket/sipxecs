@@ -1,0 +1,76 @@
+#!@BASH@
+#
+# Copyright (C) 2008 Pingtel Corp., certain elements licensed under a Contributor Agreement.  
+# Contributors retain copyright to elements licensed under a Contributor Agreement.
+# Licensed to the User under the LGPL license.
+
+Action=RUN
+Status=0
+Args=""
+
+while [ $# -ne 0 ]
+do
+    case ${1} in
+        --configtest)
+            Action=CONFIGTEST
+            ;;
+
+        --help)
+            Action=USAGE
+            ;;
+
+        start|--start)
+            Action=RUN
+            ;;
+
+        *)
+            echo "Unrecognized argument '$1'." >&2
+            exit 1
+            ;;
+    esac           
+
+    shift # always consume 1
+done
+
+. @SIPX_LIBEXECDIR@/sipx-utils.sh || exit 1
+
+CONFIG_FILE="@SIPX_CONFDIR@/sipxcallresolver-agent-config"
+  
+case ${Action} in
+   RUN)
+     # the stunnel command creates the pid file as specified by the configuration file
+     exec @STUNNEL@ "${CONFIG_FILE}"
+     ;;
+
+   CONFIGTEST)
+     # Check that the log file is writable.
+     logfile="@SIPX_LOGDIR@/sipxcallresolver-agent.log"
+     if [ -e $logfile -a ! -w $logfile ]
+     then
+         echo "Log file '$logfile' exists but is not writable by user '@SIPXPBXUSER@'." >&2
+         Status=1
+     fi
+     # Check that the configuration file is readable.
+     if [ ! -r "${CONFIG_FILE}" ]
+     then
+         echo "Configuration file '$CONFIG_FILE' not found or not readable." >&2
+         Status=1
+     fi
+     ;;
+
+    USAGE)
+        myname=`basename $0`
+        cat <<EOF
+To test configuration:
+  ${myname} --configtest
+
+To start the service
+  ${myname} start
+or
+  ${myname}
+
+EOF
+esac
+
+exit $Status
+
