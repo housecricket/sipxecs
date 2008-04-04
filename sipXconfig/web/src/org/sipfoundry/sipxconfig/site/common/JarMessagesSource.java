@@ -130,8 +130,6 @@ public class JarMessagesSource implements LanguageSupport {
 
     private Properties loadMessagesFromJar(IComponent component) {
         Resource specificationLocation = component.getSpecification().getSpecificationLocation();
-        String specificationName = specificationLocation.getName();
-
         return loadMessagesFromJar(specificationLocation, component.getPage().getLocale());
     }
 
