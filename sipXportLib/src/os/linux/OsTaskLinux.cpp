@@ -344,29 +344,15 @@ OsStatus OsTaskLinux::awaitSignal(int& sig_num)
    sigset_t sig_set;
    int res = -1;
 
-   // Enable all standard error signals
-   sigemptyset(&sig_set);
-   sigaddset(&sig_set, SIGHUP) ;
-   sigaddset(&sig_set, SIGINT) ;
-   sigaddset(&sig_set, SIGQUIT) ;
-   sigaddset(&sig_set, SIGILL) ;
-   sigaddset(&sig_set, SIGTRAP) ;
-   sigaddset(&sig_set, SIGABRT) ;
-   sigaddset(&sig_set, SIGBUS) ; 
-   sigaddset(&sig_set, SIGFPE) ;
-   sigaddset(&sig_set, SIGKILL) ;
-   sigaddset(&sig_set, SIGSEGV) ;
-   sigaddset(&sig_set, SIGUSR1) ;
-   sigaddset(&sig_set, SIGSEGV) ;
-   sigaddset(&sig_set, SIGUSR2) ;
-   sigaddset(&sig_set, SIGPIPE) ;  // Should be ignored anyway
-   sigaddset(&sig_set, SIGALRM) ;
-   sigaddset(&sig_set, SIGTERM) ;
-   sigaddset(&sig_set, SIGCHLD) ;  // Should be ignored anyway
-   res = sigwait(&sig_set, &sig_num);
-   errno = res ;
+   // Enable all signals
+   sigfillset(&sig_set);
+   do
+   {
+      res = sigwait(&sig_set, &sig_num);
+   } while (res == EINTR); // bug in older glibc sometimes returns EINTR here
+   errno = res;            // set errno so it can be seen outside this function
    
-   return res == 0 ? OS_SUCCESS : OS_FAILED ;
+   return res == 0 ? OS_SUCCESS : OS_FAILED;
 }
 
 // Delay a task from executing for the specified number of milliseconds.
