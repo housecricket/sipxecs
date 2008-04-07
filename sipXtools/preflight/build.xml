@@ -3,7 +3,6 @@
 <!-- Preflight Build Script  -->
 
 <project name="preflight" default="launcher" basedir="." xmlns:cpptasks="antlib:org.sf.net.antcontrib.cpptasks">
-
   <patternset id="test.classes" excludes="**"/>
   <property name="top.build.dir" value="${basedir}/.."/>
   <property name="build.dir" value="${top.build.dir}/preflight"/>
@@ -11,6 +10,8 @@
   <property name="compiler" value="${cc}"/>
 
   <import file="ant-targets.xml"/>
+
+  <property name="prebuilt.windows.launcher" value="${src.dir}/bin/Preflight.exe"/>
 
   <property name="preflight.lib.dir" value="${lib.dir}/preflight"/>
 
@@ -58,7 +59,9 @@
   <!-- L A U N C H E R S -->
   <target name="launcher" depends="jar" description="create native launchers">
     <antcall target="posix-launcher"/>
-    <antcall target="windows-launcher"/>
+    <antcall target="build-windows-launcher"/>
+    <antcall target="copy-prebuilt-windows-launcher"/>
+    <antcall target="windows-installer"/>
     <antcall target="jre-missing"/>
     <antcall target="nsis-missing"/>
   </target>
@@ -74,9 +77,9 @@
     </cc>
   </target>
 
-  <!-- Build Windows Installer if Windows JRE and NSIS are installed -->
-  <target name="windows-launcher" if="has.windows.prerequisites" depends="jar, test-for-windows-prerequisites"
-          description="create native windows launcher and installer" >
+  <!-- Build Windows Launcher -->
+  <target name="build-windows-launcher" unless="prebuilt.windows.launcher.found" depends="test-for-prebuilt-windows-launcher"
+          description="create native windows launcher" >
     <taskdef name="launch4j" classname="net.sf.launch4j.ant.Launch4jTask" classpath="${launch4j.jar}:${xstream.jar}" />
     <copy file="${src.dir}/Preflight.xml.in" tofile="${build.dir}/dist/Preflight.xml"/>
     <replace file="${build.dir}/dist/Preflight.xml">
@@ -84,6 +87,18 @@
       <replacefilter token="@build.dir@" value="${build.dir}"/>
     </replace>
     <launch4j configFile="${build.dir}/dist/Preflight.xml" />
+  </target>
+
+  <!-- Copy Prebuilt Windows Launcher -->
+  <target name="copy-prebuilt-windows-launcher" if="prebuilt.windows.launcher.found" depends="test-for-prebuilt-windows-launcher"
+          description="copies prebuilt native windows launcher" >
+    <echo> Using prebuilt windows launcher (Preflight.exe) </echo>
+    <copy file="${prebuilt.windows.launcher}" todir="${build.dir}/dist"/>
+  </target>
+
+  <!-- Build Windows Installer if Windows JRE and NSIS are installed -->
+  <target name="windows-installer" if="has.windows.prerequisites" depends="jar, test-for-windows-prerequisites"
+          description="create native windows installer" >
 
     <taskdef name="nsis" classname="net.sf.nsisant.Task" classpath="${nsisant.jar}"/>
     <copy file="${src.dir}/Preflight.nsi.in" tofile="${build.dir}/dist/Preflight.nsi"/>
@@ -161,6 +176,13 @@
       NSIS (Nullsoft Scriptable Install System) package.  See
       project README document for more information regaring NSIS.
     </echo>
+  </target>
+
+  <target name="test-for-prebuilt-windows-launcher">
+    <echo> Looking for: ${prebuilt.windows.launcher} </echo>
+    <condition property="prebuilt.windows.launcher.found">
+      <available file="${prebuilt.windows.launcher}"/>
+    </condition>
   </target>
 
 </project>
