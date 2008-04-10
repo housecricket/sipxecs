@@ -304,7 +304,6 @@ UtlBoolean SipRefreshManager::initiateRefresh(SipMessage& subscribeOrRegisterReq
         // Keep track of when we send this request to be refreshed
         long now = OsDateTime::getSecsSinceEpoch();
         state->mPendingStartTime = now;
-        state->mRequestState = REFRESH_REQUEST_PENDING;
         OsSysLog::add(FAC_SIP, PRI_DEBUG,
                       "SipRefreshManager::initiateRefresh %p->mExpirationPeriodSeconds = %ld",
                       state, state->mPendingStartTime);
@@ -323,7 +322,7 @@ UtlBoolean SipRefreshManager::initiateRefresh(SipMessage& subscribeOrRegisterReq
 
         // Mark the refresh state as having an outstanding request
         // and make a copy of the request.  The copy needs to be
-        // attached to the state before the send incase the response
+        // attached to the state before the send in case the response
         // comes back before we return from the send.
         state->mRequestState = REFRESH_REQUEST_PENDING;
         state->mpLastRequest = new SipMessage(subscribeOrRegisterRequest);
@@ -410,54 +409,60 @@ UtlBoolean SipRefreshManager::stopRefresh(const char* dialogHandle)
     RefreshDialogState* state = getAnyDialog(dialogHandleString);
 
     // Remove the state so we can release the lock
-    if(state)
+    if (state)
     {
         mRefreshes.removeReference(state);
     }
     unlock();
 
     // If a matching state exists
-    if(state)
+    if (state)
     {
         // If the subscription or registration has not expired
         // or there is a pending request
         long now = OsDateTime::getSecsSinceEpoch();
-        if(state->mExpiration > now || 
-           state->mRequestState == REFRESH_REQUEST_PENDING)
+        if (   state->mExpiration > now
+            || state->mRequestState == REFRESH_REQUEST_PENDING)
         {
-            if(state->mpLastRequest)
-            {
-                // Reset the request with a zero expiration
-                setForResend(*state,
-                             TRUE); // expire now
+           // Send a terminating request.
+           // We should not send a 0-expiration request if the request
+           // is a SUBSCRIBE, as no subscription dialog has been
+           // established within which we could send an unsubscribe.
+           // (Any subscription that is created later will be
+           // terminated when it sends a NOTIFY and we respond 481.)
+           // But if the request is a REGISTER, we should send an
+           // un-register, as REGISTERs are not within dialogs.
+           if (state->mpLastRequest)
+           {
+              UtlString method;
+              state->mpLastRequest->getRequestMethod(&method);
+              if (method.compareTo(SIP_REGISTER_METHOD) == 0)
+              {
+                 // Reset the request with a zero expiration
+                 setForResend(*state,
+                              TRUE); // expire now
 
-                // Don't really need to set this stuff as we are
-                // going to delete the state anyway
-                state->mRequestState = REFRESH_REQUEST_PENDING;
-                state->mPendingStartTime = now;
-                state->mExpirationPeriodSeconds = 0;
+                 mpUserAgent->send(*(state->mpLastRequest));
+              }
+           }
 
-                mpUserAgent->send(*(state->mpLastRequest));
+           // Don't really need to set this stuff as we are
+           // going to delete the state anyway
+           state->mRequestState = REFRESH_REQUEST_PENDING;
+           state->mPendingStartTime = now;
+           state->mExpirationPeriodSeconds = 0;
 
-                // Invoke the refresh state call back to indicate
-                // the refresh has been expired
-                UtlBoolean stateKeyIsEarlyDialog = SipDialog::isEarlyDialog(*state);
-                (state->mpStateCallback)(state->mRequestState,
-                                         stateKeyIsEarlyDialog ? state->data() : NULL,
-                                         stateKeyIsEarlyDialog ? NULL : state->data(),
-                                         state->mpApplicationData,
-                                         -1, // responseCode
-                                         NULL, // responseText,
-                                         0, // zero means expires now
-                                         NULL); // response
-            }
-
-            // No prior request for some reason
-            else
-            {
-                OsSysLog::add(FAC_SIP, PRI_ERR,
-                    "SipRefreshManager::stopRefresh state with NULL mpLastRequest");
-            }
+           // Invoke the refresh state callback to indicate
+           // the refresh has been expired
+           UtlBoolean stateKeyIsEarlyDialog = SipDialog::isEarlyDialog(*state);
+           (state->mpStateCallback)(state->mRequestState,
+                                    stateKeyIsEarlyDialog ? state->data() : NULL,
+                                    stateKeyIsEarlyDialog ? NULL : state->data(),
+                                    state->mpApplicationData,
+                                    -1, // responseCode
+                                    NULL, // responseText,
+                                    0, // zero means expires now
+                                    NULL); // response
         }
 
         // Stop and delete the refresh timer
@@ -473,7 +478,6 @@ UtlBoolean SipRefreshManager::stopRefresh(const char* dialogHandle)
 
         stateFound = TRUE;
     }
-
 
     return(stateFound);
 }
