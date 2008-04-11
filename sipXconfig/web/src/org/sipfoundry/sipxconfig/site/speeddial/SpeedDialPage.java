@@ -91,4 +91,11 @@ public abstract class SpeedDialPage extends UserBasePage {
             getProfileManager().generateProfiles(ids, true);
         }
     }
+    
+    public String getRlsUri() {
+        StringBuilder rlsUri = new StringBuilder(getSpeedDial().getResourceListId(false));
+        rlsUri.append('@');
+        rlsUri.append(getCoreContext().getDomainName());
+        return rlsUri.toString();
+    }
 }

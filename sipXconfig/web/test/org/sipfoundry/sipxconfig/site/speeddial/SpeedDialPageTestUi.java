@@ -28,6 +28,7 @@ public class SpeedDialPageTestUi extends WebTestCase {
     public void testDisplay() throws Exception {
         clickLink("SpeedDialPage");
         SiteTestHelper.assertNoUserError(tester);
+        assertTextPresent("~~rl~");
         assertButtonPresent("form:ok");
         assertButtonPresent("form:cancel");
         assertButtonPresent("form:apply");
