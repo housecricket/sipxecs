@@ -104,4 +104,17 @@ $(SIPX_DATADIR)/sipdb/credential.xml: $(SIPX_DATADIR)/sipdb/credential.xml.in $(
 		"yes 1234 | $(UPDATE_PASSTOKENS) $< $@"
 	@echo
 
+$(HTTP_ROOTDIR)/config-version.html: $(HTTP_ROOTDIR)/config-version.html.in
+	WCROOT="`svn info | grep '^URL:'`" ;\
+	SVNVERSION=`svnversion` ;\
+	sed \
+		-e 's!@WCROOT@!'"$$WCROOT"'!g' \
+		-e 's!@SVNVERSION@!'$$SVNVERSION'!g' \
+		<$< >$@
+	chmod a+r $@
+# An additional dependency for config-version.html to force it to be regenerated
+# every time config.defs is touched (which includes every time the
+# configuration is updated by following the standard instructions).
+$(HTTP_ROOTDIR)/config-version.html: $(SIPX_CONFDIR)/config.defs
+
 .PHONY: install debug
