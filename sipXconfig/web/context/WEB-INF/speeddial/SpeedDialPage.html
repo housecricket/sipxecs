@@ -7,8 +7,13 @@
   <span jwcid="@ErrorMsg"/>
   <div jwcid="@OptionalElement" id="settings-content" element="ognl:(userSession.admin ? 'div' : null)">
     <!--  form jwcid="@tacos:AjaxForm" delegate="bean:validator" -->
-    <span class="pageLabel" key="label.rlsUri">RLS URI:</span>&nbsp;
-    <span jwcid="@Insert" value="ognl:rlsUri"/>
+    <span jwcid="@If" condition="ognl:userSession.admin">
+      <span class="pageLabel" key="label.rlsUriRfc">RLS URI (Full RFC 4662 format):</span>&nbsp;
+      <span jwcid="@Insert" value="ognl:rlsUriRfc"/>
+      <br/>
+      <span class="pageLabel" key="label.rlsUriBroadworks">RLS URI (Broadworks format):</span>&nbsp;
+      <span jwcid="@Insert" value="ognl:rlsUriBroadworks"/>
+    </span>
     <form jwcid="speedDialForm@Form" delegate="bean:validator" listener="listener:onSubmit">
       <fieldset jwcid="@speeddial/SpeedDialPanel" speedDial="ognl:speedDial"/>
       <ul jwcid="@FormActions" listener="listener:onApply" callback="ognl:callback">

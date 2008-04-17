@@ -43,9 +43,9 @@ public abstract class SpeedDialPage extends UserBasePage {
     public abstract SpeedDial getSpeedDial();
 
     public abstract void setSpeedDial(SpeedDial speedDial);
-    
+
     public abstract void setValidationEnabled(boolean enabled);
-    
+
     public abstract boolean isValidationEnabled();
 
     public void pageBeginRender(PageEvent event) {
@@ -61,13 +61,13 @@ public abstract class SpeedDialPage extends UserBasePage {
         setSpeedDial(speedDial);
         setSavedUserId(userId);
     }
-    
+
     public void onSubmit() {
         // XCF-1435 - Unless attempting to save data (e.g. onApply and the like)
         // clear all form errors
-        //   A.) user is probably not done and errors are disconcerting
-        //   B.) tapestry rewrites form values that are invalid on the button move operations
-        // NOTE:  This relies on the fact the the form listener is called BEFORE AND IN ADDITION TO
+        // A.) user is probably not done and errors are disconcerting
+        // B.) tapestry rewrites form values that are invalid on the button move operations
+        // NOTE: This relies on the fact the the form listener is called BEFORE AND IN ADDITION TO
         // the button listener.
         if (!isValidationEnabled()) {
             TapestryUtils.getValidator(this).clearErrors();
@@ -81,7 +81,7 @@ public abstract class SpeedDialPage extends UserBasePage {
             speedDialManager.saveSpeedDial(getSpeedDial());
         }
     }
-    
+
     public void onUpdatePhones() {
         setValidationEnabled(true);
         if (TapestryUtils.isValid(this)) {
@@ -91,9 +91,18 @@ public abstract class SpeedDialPage extends UserBasePage {
             getProfileManager().generateProfiles(ids, true);
         }
     }
-    
-    public String getRlsUri() {
-        StringBuilder rlsUri = new StringBuilder(getSpeedDial().getResourceListId(false));
+
+    public String getRlsUriRfc() {
+        return getRlsUri(false);
+    }
+
+    public String getRlsUriBroadworks() {
+        return getRlsUri(true);
+    }
+
+    private String getRlsUri(boolean consolidateFormat) {
+        StringBuilder rlsUri = new StringBuilder(getSpeedDial().getResourceListId(
+                consolidateFormat));
         rlsUri.append('@');
         rlsUri.append(getCoreContext().getDomainName());
         return rlsUri.toString();
