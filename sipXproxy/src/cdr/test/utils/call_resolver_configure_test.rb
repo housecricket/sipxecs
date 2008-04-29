@@ -231,5 +231,14 @@ class CallResolverConfigureTest < Test::Unit::TestCase
     assert_equal('/etc/sipxpbx', @config.confdir)
     assert_equal('/etc/sipxpbx/ssl', @config.ssldir)
     assert_equal('/var/log/sipxpbx', @config.logdir)
-  end  
+  end
+
+  def test_queue_sizes
+    assert_equal(1000, @config.cse_queue_size)
+    assert_equal(1000, @config.cdr_queue_size)
+    c = Configure.new('SIP_CALLRESOLVER_CSE_QUEUE_SIZE' => '500', 'SIP_CALLRESOLVER_CDR_QUEUE_SIZE' => '550')
+    config = CallResolverConfigure.new(c)
+    assert_equal(500, config.cse_queue_size)
+    assert_equal(550, config.cdr_queue_size)
+  end
 end

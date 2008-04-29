@@ -169,7 +169,15 @@ class CallResolverConfigure
   def cse_connect_port
     @config.fetch('SIP_CALLRESOLVER_STUNNEL_PORT', 9300)
   end
-  
+
+  def cse_queue_size
+    parse_int_param(@config, 'SIP_CALLRESOLVER_CSE_QUEUE_SIZE', 1000)
+  end
+
+  def cdr_queue_size
+    parse_int_param(@config, 'SIP_CALLRESOLVER_CDR_QUEUE_SIZE', 1000)
+  end
+
   def ssldir
     File.join(confdir, 'ssl')    
   end

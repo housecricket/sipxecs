@@ -48,12 +48,12 @@ class CallResolver
   # Resolve CSEs to CDRs
   def resolve(start_time, end_time)
     start_run = Time.now
-    
-    # start everything    
-    
-    cdr_queue = Queue.new
-    cse_queue = Queue.new    
 
+    # limit the size of the queues: it's better to get starved than too eat all available memory
+    cdr_queue = SizedQueue.new(@config.cdr_queue_size)
+    cse_queue = SizedQueue.new(@config.cse_queue_size)
+
+    # start everything
     reader_threads = @readers.collect do | reader |
       # TODO: we are passing nil as CSE start_id at them moment
       # it would be better if we stored the last read id for every CSE database
