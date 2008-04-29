@@ -161,11 +161,6 @@ class CallResolverConfigure
     @config.fetch('SIP_CALLRESOLVER_STUNNEL_DEBUG', 5)
   end
 
-  # name of the CA used to communicate with remote CSE DB
-  def cse_ca
-    @config['SIP_CALLRESOLVER_CSE_CA']
-  end
-
   def cse_connect_port
     @config.fetch('SIP_CALLRESOLVER_STUNNEL_PORT', 9300)
   end
