@@ -38,6 +38,10 @@ class CallResolver
   end
   
   def run_resolver
+    # make sure we can connect to all the DBs that we need to connect to
+    daos = @readers + [@writer]
+    daos.each { |dao| dao.test_connection }
+    
     resolve(@writer.last_cdr_start_time, nil)
   end
   

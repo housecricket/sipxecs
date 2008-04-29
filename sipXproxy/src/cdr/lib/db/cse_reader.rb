@@ -21,7 +21,7 @@ class CseReader < Dao
     log.debug("Polling CSE DB every #{polling_interval} seconds.")
     @stop = Terminator.new(polling_interval)
   end
-    
+  
   # Another way of fetching the row
   #        while row = sth.fetch_scroll(DBI::SQL_FETCH_NEXT)
   #          cse_queue << CseReader.cse_from_row(row)
