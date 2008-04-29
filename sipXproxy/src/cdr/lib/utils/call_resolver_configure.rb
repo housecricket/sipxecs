@@ -181,8 +181,8 @@ class CallResolverConfigure
     @config[param]
   end
   
-  def enabled?(param, default = nil)
-    @config.enabled?(param, default)
+  def enabled?(param, default_value = nil)
+    @config.enabled?(param, default_value)
   end
   
   # Determines the log device

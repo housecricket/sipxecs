@@ -33,7 +33,7 @@ class CallResolverConfigureTest < Test::Unit::TestCase
     assert_equal(STDOUT, @config.get_log_device(log_dir))
        
     
-    c = Configure.new(CallResolverConfigure::LOG_DIR_CONFIG => log_dir)
+    Configure.new(CallResolverConfigure::LOG_DIR_CONFIG => log_dir)
     assert_equal(STDOUT, @config.get_log_device(log_dir))
   end
   
