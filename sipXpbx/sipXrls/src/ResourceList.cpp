@@ -55,21 +55,18 @@ ResourceList::ResourceList(ResourceListSet* resourceListSet,
    mResourceListName.append(mUserPart);
    mResourceListName.append("@");
    mResourceListName.append(getResourceListServer()->getDomainName());
+   // Compose the resource list name/URI for the "consolidated" events,
+   // by appending "c" to the user-part.
    mResourceListNameCons = "sip:";
    mResourceListNameCons.append(mUserPart);
    mResourceListNameCons.append("c@");
    mResourceListNameCons.append(getResourceListServer()->getDomainName());
    // Compose the resource list URI as it will appear in the SUBSCRIBE.
-   mResourceListUri = "sip:";
-   mResourceListUri.append(mUserPart);
-   mResourceListUri.append("@");
-   mResourceListUri.append(getResourceListServer()->getServerLocalHostPart());
-   // Compose the resource list URI for the "consolidated" events,
-   // by appending "c" to the user-part.
-   mResourceListUriCons = "sip:";
-   mResourceListUriCons.append(mUserPart);
-   mResourceListUriCons.append("c@");
-   mResourceListUriCons.append(getResourceListServer()->getServerLocalHostPart());
+   // Because we now use a Route header to send SUBSCRIBEs to the RLS,
+   // and leave the request-URI unchanged, the resource list URIs are
+   // the same as the resource list names.
+   mResourceListUri = mResourceListName;
+   mResourceListUriCons = mResourceListNameCons;
 
    // Initialize mVersion by looking up the next allowed version
    // that is recorded in any subscription for mResourceListUri.
