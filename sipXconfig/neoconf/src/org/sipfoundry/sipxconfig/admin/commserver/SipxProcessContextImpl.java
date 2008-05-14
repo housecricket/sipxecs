@@ -138,8 +138,22 @@ public class SipxProcessContextImpl extends SipxReplicationContextImpl implement
     public void manageServices(Location location, Collection processes, Command command) {
         // HACK: if we are restarting multiple services STOP them all and then START them all
         if (Command.RESTART.equals(command)) {
-            manageServices(location, processes, Command.STOP);
-            manageServices(location, processes, Command.START);
+            Collection p = new ArrayList(processes);
+
+            // treat sipXconfig differently: if you stop it, there is nothing to start it
+            // wait until end to restart sipXconfig, if it needs a restart
+            boolean restartSipxConfig = false;
+            Process configServer = new Process(ProcessName.CONFIG_SERVER);
+            if (p.remove(configServer)) {
+                restartSipxConfig = true;
+            }
+
+            manageServices(location, p, Command.STOP);
+            manageServices(location, p, Command.START);
+
+            if (restartSipxConfig) {
+                manageService(location, configServer, Command.RESTART);
+            }
         } else {
             for (Iterator i = processes.iterator(); i.hasNext();) {
                 Process process = (Process) i.next();

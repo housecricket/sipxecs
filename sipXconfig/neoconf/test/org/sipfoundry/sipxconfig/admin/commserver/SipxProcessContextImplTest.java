@@ -143,6 +143,25 @@ public class SipxProcessContextImplTest extends TestCase {
         }
     }
 
+    public void testManageServicesRestartWithConfigServer() {
+        Process[] processes = {
+            new Process(ProcessName.MEDIA_SERVER), new Process(ProcessName.CONFIG_SERVER)
+        };
+        Location[] locations = m_processContextImpl.getLocations();
+        Command command = Command.RESTART;
+
+        m_processContextImpl.manageServices(Arrays.asList(processes), command);
+
+        // changing restart: stop and start - but not for sipXconfig
+        assertEquals(3 * locations.length, m_numberOfCalls);
+
+        for (int l = 0; l < locations.length; l++) {
+            assertEquals(Command.STOP.getName(), m_methodNameStrings.get(0));
+            assertEquals(Command.START.getName(), m_methodNameStrings.get(1));
+            assertEquals(Command.RESTART.getName(), m_methodNameStrings.get(2));
+        }
+    }
+
     public void testManageServicesLocation() {
         Process[] processes = {
             new Process(ProcessName.PROXY), new Process(ProcessName.ACD_SERVER)
