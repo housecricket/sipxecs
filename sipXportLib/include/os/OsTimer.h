@@ -148,7 +148,7 @@ class OsTimer : public UtlContainableAtomic
     *  @endcode
     */
    OsTimer(OsMsgQ* pQueue,      ///< Queue to send OsEventMsg::NOTIFY message
-           int userData         ///< userData value to store in OsQueuedEvent
+           const int userData   ///< userData value to store in OsQueuedEvent
       );
 
    /// @}
