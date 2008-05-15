@@ -2,8 +2,7 @@
 
 include $(top_srcdir)/config/subdir.am
 
-unconditional_SUBDIRS = . src bin etc doc
-
+unconditional_SUBDIRS = . src bin etc doc meta
 
 editscripts_IN = \
     bin/sipxpresence.sh.in
