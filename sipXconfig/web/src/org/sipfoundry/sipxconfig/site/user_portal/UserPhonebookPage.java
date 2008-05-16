@@ -16,16 +16,16 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.tapestry.annotations.Bean;
 import org.apache.tapestry.annotations.InjectObject;
+import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.bean.EvenOdd;
-import org.apache.tapestry.event.PageBeginRenderListener;
-import org.apache.tapestry.event.PageEvent;
 import org.sipfoundry.sipxconfig.common.User;
+import org.sipfoundry.sipxconfig.components.TableVariables;
 import org.sipfoundry.sipxconfig.phonebook.Phonebook;
 import org.sipfoundry.sipxconfig.phonebook.PhonebookEntry;
 import org.sipfoundry.sipxconfig.phonebook.PhonebookManager;
 
-public abstract class UserPhonebookPage extends UserBasePage implements PageBeginRenderListener {
-    
+public abstract class UserPhonebookPage extends UserBasePage {
+
     private static final String SEPARATOR = ", ";
     private static final String EXTENSION_PATTERN = "\\d*";
     private static final String UNKNOWN = "label.unknown";
@@ -35,7 +35,11 @@ public abstract class UserPhonebookPage extends UserBasePage implements PageBegi
 
     @InjectObject("spring:phonebookManager")
     public abstract PhonebookManager getPhonebookManager();
-    
+
+    @InjectObject("spring:tableVariables")
+    public abstract TableVariables getTableVariables();
+
+    @Persist
     public abstract void setQuery(String query);
 
     public abstract String getQuery();
@@ -45,20 +49,23 @@ public abstract class UserPhonebookPage extends UserBasePage implements PageBegi
     public abstract void setPhonebookEntries(Collection<PhonebookEntry> entries);
 
     public abstract PhonebookEntry getPhonebookEntry();
+
     public abstract void setPhonebookEntry(PhonebookEntry entry);
 
-    public void pageBeginRender(PageEvent event) {
-        super.pageBeginRender(event);
-
-        if (getPhonebookEntries() == null) {
-            initializeEntries();
+    public Collection<PhonebookEntry> getSafePhonebookEntries() throws IOException, ParseException {
+        Collection<PhonebookEntry> phonebookEntries = getPhonebookEntries();
+        if (phonebookEntries != null) {
+            return phonebookEntries;
         }
-    }
-
-    private void initializeEntries() {
+        String query = getQuery();
         Collection<Phonebook> phonebooks = getPhonebooks();
-        Collection<PhonebookEntry> phonebookEntries = getPhonebookManager().getEntries(phonebooks);
+        if (StringUtils.isNotBlank(query)) {
+            phonebookEntries = getPhonebookManager().search(phonebooks, query);
+        } else {
+            phonebookEntries = getPhonebookManager().getEntries(phonebooks);
+        }
         setPhonebookEntries(phonebookEntries);
+        return phonebookEntries;
     }
 
     /**
@@ -77,7 +84,7 @@ public abstract class UserPhonebookPage extends UserBasePage implements PageBegi
                 extensionBuffer.append(getPhonebookEntry().getNumber());
             }
         }
-        
+
         if (extensionBuffer.length() == 0) {
             extensionBuffer.append(getMessages().getMessage(UNKNOWN));
         }
@@ -101,7 +108,7 @@ public abstract class UserPhonebookPage extends UserBasePage implements PageBegi
                 extensionBuffer.append(getPhonebookEntry().getNumber());
             }
         }
-        
+
         if (extensionBuffer.length() == 0) {
             extensionBuffer.append(getMessages().getMessage(UNKNOWN));
         }
@@ -109,23 +116,18 @@ public abstract class UserPhonebookPage extends UserBasePage implements PageBegi
         return extensionBuffer.toString();
     }
 
-    
-
     /**
      * Filters the phonebook entries based on the value of getQuery()
      */
     public void search() throws IOException, ParseException {
-        if (getQuery() == null) {
-            setQuery("");
-        }
-        setPhonebookEntries(getPhonebookManager().search(getPhonebooks(), getQuery()));
+        setPhonebookEntries(null);
     }
 
     public void reset() {
         setQuery(StringUtils.EMPTY);
-        initializeEntries();
+        setPhonebookEntries(null);
     }
-    
+
     private Collection<Phonebook> getPhonebooks() {
         User user = getUser();
         return getPhonebookManager().getPhonebooksByUser(user);
@@ -134,7 +136,7 @@ public abstract class UserPhonebookPage extends UserBasePage implements PageBegi
     private User getUserForEntry(PhonebookEntry entry) {
         return getCoreContext().loadUserByUserName(entry.getNumber());
     }
-    
+
     private void parseExtensionsForUser(User user, StringBuffer extensionBuffer) {
         if (user.getName().matches(EXTENSION_PATTERN)) {
             extensionBuffer.append(user.getName());
@@ -149,7 +151,7 @@ public abstract class UserPhonebookPage extends UserBasePage implements PageBegi
             }
         }
     }
-    
+
     private void parseSipIdsForUser(User user, StringBuffer extensionBuffer) {
         if (!user.getName().matches(EXTENSION_PATTERN)) {
             extensionBuffer.append(user.getName());

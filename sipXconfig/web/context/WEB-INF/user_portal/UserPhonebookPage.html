@@ -25,13 +25,22 @@
     </ul>
     <fieldset>
       <table jwcid="@contrib:TableView" id="userPhonebook:phonebookTable"
-        class="component" source="ognl:phonebookEntries"
-        columns="* firstName,lastName,extensions,sipIds">
+        class="component"
+        source="ognl:safePhonebookEntries"
+        columns="* firstName,lastName,extensions,sipIds"
+		pageSize="ognl:tableVariables.tablePageSize">
         <thead>
           <tr>
             <span jwcid="@contrib:TableColumns" />
           </tr>
         </thead>
+        <tfoot>
+          <tr>
+            <td colspan="4">
+              <span jwcid="@contrib:TablePages"/>
+            </td>
+          </tr>
+        </tfoot>
         <tbody>
           <span jwcid="@contrib:TableRows" class="ognl:beans.rowClass.next"
             row="prop:phonebookEntry" volatile="ognl:true"> <span
