@@ -2365,7 +2365,7 @@ void HttpMessage::getBytes(UtlString* bufferString, int* length, bool includeBod
                 // Do not free up name and data as this are contained
                 // in the NameValuePair
                 name = *headerField;
-        cannonizeToken(name);
+                cannonizeToken(name);
                 value = headerField->getValue();
 
         // Keep track while we are looping through if we see a
