@@ -49,7 +49,7 @@
       <userPattern>~~rl~.</userPattern>
       <permissionMatch>
         <transform>
-          <url>&lt;sip:{digits}@${RLS_ADDR}:${RLS_SIP_PORT}&gt;</url>
+          <headerparams>Route=sip:${RLS_SIP_SRV_OR_HOSTPORT}</headerparams>
         </transform>
       </permissionMatch>
     </userMatch>
@@ -80,7 +80,7 @@
     </userMatch>
 
     <userMatch>
-      <description>Default internal dialing plan</description>
+      <description>Default voicemail dialing plan</description>
       <userPattern>~~vm~.</userPattern>
       <permissionMatch>
         <permission>SipXVoicemailServer</permission>
@@ -96,20 +96,20 @@
       <permissionMatch>
         <permission>Voicemail</permission>
         <transform>
-          <user>~~vm~{user}</user>
+          <user>~~vm~{digits}</user>
           <fieldparams>q=0.1</fieldparams>
         </transform>
       </permissionMatch>
     </userMatch>
 
     <!-- Direct Voice Mail Deposit
-      - 2<ext> goes direct to voicemail box for any user with voicemail
+      -  2xxx goes direct to voicemail box for any user 1xxx with voicemail
       -->
     <userMatch>
       <userPattern>2xx[12]</userPattern>
       <permissionMatch>
         <transform>
-          <url>&lt;sip:1{vdigits}@{mediaserver};play={voicemail}%2Fcgi-bin%2Fvoicemail%2Fmediaserver.cgi%3Faction%3Ddeposit%26mailbox%3D1{vdigits}&gt;</url>
+	  <user>~~vm~1{vdigits}</user>
         </transform>
       </permissionMatch>
     </userMatch>
@@ -244,6 +244,19 @@
       <permissionMatch>
         <transform>
           <user>InfiniteLoop</user>
+        </transform>
+      </permissionMatch>
+    </userMatch>
+
+    <!-- Test handling of Require header.
+      - Forward *63xxx to xxxx with "Require: merde".
+      -->
+    <userMatch>
+      <userPattern>*63xxxx</userPattern>
+      <permissionMatch>
+        <transform>
+          <user>{vdigits}</user>
+	  <headerparams name='Require'>merde</headerparams>
         </transform>
       </permissionMatch>
     </userMatch>

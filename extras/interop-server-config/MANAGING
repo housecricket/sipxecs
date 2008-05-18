@@ -66,6 +66,11 @@ all the other RPMs, and
 4) the java-NNN-sun-NNN.rpm, java-NNN-sun-fonts-NNN.rpm, and
 sipx*-devel-* RPMs can also be omitted.
 
+Install the setsipxpasswd program.  You may have to load it from the
+sipX source using
+
+	wget http://sipxecs.sipfoundry.org/rep/sipXecs/main/sipXcommserverLib/meta/setsipxpasswd
+
 Install the XML::Simple and File::ReadBackwards modules from CPAN:
 
 	yum install perl-CPAN
@@ -98,6 +103,9 @@ or to get a Subversion working copy:
 
 	svn co -q https://sipxecs.sipfoundry.org/rep/sipXecs/main/extras/interop-server-config
 	cd interop-server-config
+
+Edit the SETSIPXPASSWD line of ./Makefile to specify the location of
+the setsipxpasswd program.  (See above for installation instructions.)
 
 Edit the SIPX_USER line of ./Makefile to specify the correct user
 name, the one that is in /etc/passwd -- open-source versions usually
