@@ -75,9 +75,10 @@ public class GatewaysTestUi extends WebTestCase {
     public void testSipTrunkRouteField() throws Exception {
         clickLink("ListGateways");
 
-        String[] nonRouteGateways = {"Acme 1000", "AudioCodes MP114 FXO",
-                "AudioCodes MP118 FXO", "AudioCodes Mediant",
-                "AudioCodes TP260", "Unmanaged gateway"};
+        String[] nonRouteGateways = {
+            "Acme 1000", "AudioCodes MP114 FXO", "AudioCodes MP118 FXO", "AudioCodes Mediant 1000",
+            "AudioCodes Mediant 2000", "AudioCodes Mediant 3000", "AudioCodes TP260", "Unmanaged gateway"
+        };
 
         for (String gatewayType : nonRouteGateways) {
             selectOption("selectGatewayModel", gatewayType);
