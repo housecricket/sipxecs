@@ -11,13 +11,22 @@ package org.sipfoundry.sipxconfig.gateway.audiocodes;
 
 import java.util.Set;
 
+import org.sipfoundry.sipxconfig.device.DeviceVersion;
 import org.sipfoundry.sipxconfig.phone.PhoneModel;
 
 public class AudioCodesFxsModel extends PhoneModel {
+    private static final DeviceVersion[] VERSIONS = {
+        AudioCodesModel.REL_5_0, AudioCodesModel.REL_5_2
+    };
+
     private boolean m_fxo;
     private boolean m_fxs;
     private boolean m_digital;
     private String m_configDirectory;
+
+    public AudioCodesFxsModel() {
+        setVersions(VERSIONS);
+    }
 
     public void setFxo(boolean fxo) {
         m_fxo = fxo;
