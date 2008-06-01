@@ -236,14 +236,22 @@ void SipClientWriteBuffer::emptyBuffer()
 {
    // Return all buffered messages with transport errors.
    SipMessage* m;
+   int numEmptied = 0;
+
    while ((m = dynamic_cast <SipMessage*> (mWriteBuffer.get())))
    {
+      numEmptied ++;
       // Return the message with a transport error indication.
       // SipUserAgent::dispatch takes ownership of the SIP message '*m'.
       // SipUserAgent::dispatch does not block -- if its message recipients
       // are overloaded, it discards the message.
       mpSipUserAgent->dispatch(m, SipMessageEvent::TRANSPORT_ERROR);
    }
+
+   OsSysLog::add(FAC_SIP, PRI_ERR,
+                 "SipClientWriteBuffer[%s]::empty "
+                 "had %d total messages",
+                 getName().data(), numEmptied);
 
    // Clear the other variables.
    mWriteString.remove(0);

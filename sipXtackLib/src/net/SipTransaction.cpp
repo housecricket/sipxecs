@@ -1061,6 +1061,11 @@ UtlBoolean SipTransaction::doFirstSend(SipMessage& message,
                     relationship);
     }
 
+    // Save the transaction in the message to make
+    // it easier to find the transaction on timeout or 
+	// transport error, eg. connect failure, far-end closed
+    message.setTransaction(this);
+
     if (toProtocol == OsSocket::TCP)
     {
        sendSucceeded = userAgent.sendTcp(&message,
@@ -1124,12 +1129,10 @@ UtlBoolean SipTransaction::doFirstSend(SipMessage& message,
                           method.data(),
                           userAgent.getFirstResendTimeout());
 #           endif
-            // Set the transaction for the timeout message to make
-            // it easier to find the transaction when the timer fires.
-            message.setTransaction(this);
+
             if(transactionMessageCopy) transactionMessageCopy->setTransaction(this);
 
-            // Keep separate copy for the timer
+            // Make a separate copy for the sip message resend timer
             SipMessageEvent* resendEvent =
                 new SipMessageEvent(new SipMessage(message),
                                     SipMessageEvent::TRANSACTION_RESEND);
@@ -1194,7 +1197,7 @@ UtlBoolean SipTransaction::doFirstSend(SipMessage& message,
                     expireSeconds = maxExpires;
                 }
 
-                // Keep separate copy for the timer
+                // Make a separate copy for the transaction expires timer
                 SipMessageEvent* expiresEvent =
                     new SipMessageEvent(new SipMessage(message),
                                 SipMessageEvent::TRANSACTION_EXPIRATION);
@@ -1363,7 +1366,7 @@ void SipTransaction::handleResendEvent(const SipMessage& outgoingMessage,
             UtlString method;
             outgoingMessage.getRequestMethod(&method);
 
-            // This is a resend retrieve the address and port to send the message to.
+            // This is a resend, retrieve the address and port to send the message to.
 #ifdef TEST_PRINT
             UtlString toAddress;
             int port;
@@ -2452,7 +2455,7 @@ UtlBoolean SipTransaction::recurseDnsSrvChildren(SipUserAgent& userAgent,
                 expireSeconds = maxExpires;
             }
 
-            // Set the transaction for the timeout message to make
+            // Save the transaction in the timeout message to make
             // it easier to find the transaction when the timer fires.
             mpRequest->setTransaction(this);
 
@@ -2624,7 +2627,7 @@ UtlBoolean SipTransaction::recurseDnsSrvChildren(SipUserAgent& userAgent,
             }
 
             // This parent is not canceled (implicit) and we found a non-canceled
-            // DNS SRV child with any sort of response, so there is not need to
+            // DNS SRV child with any sort of response, so there is no need to
             // recurse.  We have a DNS SRV child that has succeeded (at least in
             // as much as getting a response).
             else if(!childTransaction->mIsCanceled &&
