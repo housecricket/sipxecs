@@ -379,6 +379,20 @@ OsStatus OsTimer::startTimer(Time start,
    return result;
 }
 
+// Compare two Time's.
+int OsTimer::compareTimes(Time a, Time b)
+{
+   // We can't use the usual trick of returning (a - b), because
+   // that difference is a long long int, but the return type
+   // of compareTimes is int, and truncating may change the sign
+   // of the value.
+   Time difference = a - b;
+   return
+      difference < 0 ? -1 :
+      difference == 0 ? 0 :
+      1;
+}
+
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */
