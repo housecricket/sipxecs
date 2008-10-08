@@ -1,22 +1,19 @@
 /*
- * 
- * 
- * Copyright (C) 2007 Pingtel Corp., certain elements licensed under a Contributor Agreement.  
+ *
+ *
+ * Copyright (C) 2007 Pingtel Corp., certain elements licensed under a Contributor Agreement.
  * Contributors retain copyright to elements licensed under a Contributor Agreement.
  * Licensed to the User under the LGPL license.
- * 
+ *
  * $
  */
 package org.sipfoundry.sipxconfig.phone.polycom;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+
+import junit.framework.TestCase;
 
 import org.apache.commons.io.IOUtils;
-import org.custommonkey.xmlunit.Diff;
-import org.custommonkey.xmlunit.XMLTestCase;
-import org.custommonkey.xmlunit.XMLUnit;
 import org.sipfoundry.sipxconfig.TestHelper;
 import org.sipfoundry.sipxconfig.device.MemoryProfileLocation;
 import org.sipfoundry.sipxconfig.device.ProfileContext;
@@ -24,7 +21,7 @@ import org.sipfoundry.sipxconfig.device.ProfileGenerator;
 import org.sipfoundry.sipxconfig.device.VelocityProfileGenerator;
 import org.sipfoundry.sipxconfig.phone.PhoneTestDriver;
 
-public class SipConfigurationTest extends XMLTestCase {
+public class SipConfigurationTest extends TestCase {
 
     private PolycomPhone phone;
 
@@ -34,8 +31,8 @@ public class SipConfigurationTest extends XMLTestCase {
 
     private MemoryProfileLocation m_location;
 
+    @Override
     protected void setUp() throws Exception {
-        XMLUnit.setIgnoreWhitespace(true);
         PolycomModel model = new PolycomModel();
         model.setMaxLineCount(6);
         model.setModelId("polycom600");
@@ -49,12 +46,6 @@ public class SipConfigurationTest extends XMLTestCase {
         m_pg = pg;
     }
 
-    public void testGenerateProfile16() throws Exception {
-        phone.setDeviceVersion(PolycomModel.VER_1_6);
-        phone.beforeProfileGeneration();
-        assertProfileEquals("expected-sip.cfg.xml");
-    }
-
     public void testGenerateProfile20() throws Exception {
         initSettings();
         phone.setDeviceVersion(PolycomModel.VER_2_0);
@@ -64,27 +55,10 @@ public class SipConfigurationTest extends XMLTestCase {
 
         m_pg.generate(m_location, cfg, null, "profile");
 
-        InputStream expected = getClass().getResourceAsStream("expected-sip-3.0.0.cfg.xml");
+        InputStream expected = getClass().getResourceAsStream("expected-sip.cfg.xml");
 
         assertEquals(IOUtils.toString(expected), m_location.toString());
         expected.close();
-    }
-
-    private void assertProfileEquals(String expected) throws Exception {
-        initSettings();
-        phone.beforeProfileGeneration();
-
-        ProfileContext cfg = new SipConfiguration(phone);
-
-        m_pg.generate(m_location, cfg, null, "profile");
-
-        InputStream expectedPhoneStream = getClass().getResourceAsStream(expected);
-        Reader expectedXml = new InputStreamReader(expectedPhoneStream);
-        Reader generatedXml = m_location.getReader();
-
-        Diff phoneDiff = new Diff(expectedXml, generatedXml);
-        assertXMLEqual(phoneDiff, true);
-        expectedPhoneStream.close();
     }
 
     private void initSettings() {

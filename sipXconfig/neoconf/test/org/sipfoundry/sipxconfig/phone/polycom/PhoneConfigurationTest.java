@@ -1,20 +1,17 @@
 /*
- * 
- * 
- * Copyright (C) 2007 Pingtel Corp., certain elements licensed under a Contributor Agreement.  
+ *
+ *
+ * Copyright (C) 2007 Pingtel Corp., certain elements licensed under a Contributor Agreement.
  * Contributors retain copyright to elements licensed under a Contributor Agreement.
  * Licensed to the User under the LGPL license.
- * 
+ *
  * $
  */
 package org.sipfoundry.sipxconfig.phone.polycom;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 
 import org.apache.commons.io.IOUtils;
-import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLTestCase;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.sipfoundry.sipxconfig.TestHelper;
@@ -33,6 +30,7 @@ public class PhoneConfigurationTest extends XMLTestCase {
     private MemoryProfileLocation m_location;
     private PhoneTestDriver m_testDriver;
 
+    @Override
     protected void setUp() throws Exception {
         XMLUnit.setIgnoreWhitespace(true);
         phone = new PolycomPhone();
@@ -44,23 +42,6 @@ public class PhoneConfigurationTest extends XMLTestCase {
         VelocityProfileGenerator pg = new VelocityProfileGenerator();
         pg.setVelocityEngine(TestHelper.getVelocityEngine());
         m_pg = pg;
-    }
-
-    public void testGenerateProfileVersion16() throws Exception {
-        phone.setDeviceVersion(PolycomModel.VER_1_6);
-        m_testDriver.getPrimaryLine().setSettingValue("reg/label", "Joe & Joe");
-        phone.beforeProfileGeneration();
-
-        PhoneConfiguration cfg = new PhoneConfiguration(phone);
-        m_pg.generate(m_location, cfg, null, "profile");
-
-        InputStream expectedPhoneStream = getClass().getResourceAsStream("expected-phone.cfg.xml");
-        Reader expectedXml = new InputStreamReader(expectedPhoneStream);
-        Reader generatedXml = m_location.getReader();
-
-        Diff phoneDiff = new Diff(expectedXml, generatedXml);
-        assertXMLEqual(phoneDiff, true);
-        expectedPhoneStream.close();
     }
 
     /**
@@ -76,7 +57,7 @@ public class PhoneConfigurationTest extends XMLTestCase {
 
         m_pg.generate(m_location, cfg, null, "profile");
 
-        InputStream expectedPhoneStream = getClass().getResourceAsStream("expected-phone-3.0.0.cfg.xml");
+        InputStream expectedPhoneStream = getClass().getResourceAsStream("expected-phone.cfg.xml");
         assertEquals(IOUtils.toString(expectedPhoneStream), m_location.toString());
         expectedPhoneStream.close();
     }

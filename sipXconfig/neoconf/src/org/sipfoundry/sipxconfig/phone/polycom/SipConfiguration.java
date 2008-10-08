@@ -1,10 +1,10 @@
 /*
- * 
- * 
- * Copyright (C) 2007 Pingtel Corp., certain elements licensed under a Contributor Agreement.  
+ *
+ *
+ * Copyright (C) 2007 Pingtel Corp., certain elements licensed under a Contributor Agreement.
  * Contributors retain copyright to elements licensed under a Contributor Agreement.
  * Licensed to the User under the LGPL license.
- * 
+ *
  * $
  */
 package org.sipfoundry.sipxconfig.phone.polycom;
@@ -22,7 +22,7 @@ import org.sipfoundry.sipxconfig.setting.SettingUtil;
  * Responsible for generating ipmid.cfg
  */
 public class SipConfiguration extends ProfileContext {
-    private static final String SIP_TEMPLATE = PolycomPhone.TEMPLATE_DIR + "/sip-%s.cfg.vm";
+    private static final String SIP_TEMPLATE = PolycomPhone.TEMPLATE_DIR + "/sip.cfg.vm";
     private static PatternSettingFilter s_callSettings = new PatternSettingFilter();
 
     static {
@@ -32,11 +32,7 @@ public class SipConfiguration extends ProfileContext {
     }
 
     public SipConfiguration(PolycomPhone device) {
-        super(device, getSipTemplate(device));
-    }
-
-    public static String getSipTemplate(PolycomPhone device) {
-        return String.format(SIP_TEMPLATE, device.getDeviceVersion().getVersionId());
+        super(device, SIP_TEMPLATE);
     }
 
     @Override

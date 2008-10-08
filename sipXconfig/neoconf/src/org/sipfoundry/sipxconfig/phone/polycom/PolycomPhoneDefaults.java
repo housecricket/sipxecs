@@ -1,10 +1,10 @@
 /*
- * 
- * 
- * Copyright (C) 2007 Pingtel Corp., certain elements licensed under a Contributor Agreement.  
+ *
+ *
+ * Copyright (C) 2007 Pingtel Corp., certain elements licensed under a Contributor Agreement.
  * Contributors retain copyright to elements licensed under a Contributor Agreement.
  * Licensed to the User under the LGPL license.
- * 
+ *
  * $
  */
 package org.sipfoundry.sipxconfig.phone.polycom;
@@ -20,8 +20,11 @@ import org.sipfoundry.sipxconfig.speeddial.SpeedDial;
 // it's registered with. Setting an outbound proxy to domain would be redundant
 // therefore unnec. and could potentially cause issues.
 public class PolycomPhoneDefaults {
-    private DeviceDefaults m_defaults;
-    private SpeedDial m_speedDial;
+    private static final String DIRECTED_CALL_PICKUP =
+        "call-pick-up/SIP_REDIRECT.180-PICKUP.DIRECTED_CALL_PICKUP_CODE";
+
+    private final DeviceDefaults m_defaults;
+    private final SpeedDial m_speedDial;
 
     PolycomPhoneDefaults(DeviceDefaults defaults, SpeedDial speedDial) {
         m_defaults = defaults;
@@ -41,7 +44,7 @@ public class PolycomPhoneDefaults {
     public boolean isDstEnabled() {
         return getZone().getDstOffset() != 0;
     }
-    
+
     @SettingEntry(path = "tcpIpApp.sntp/address")
     public String getNtpServer() {
         return m_defaults.getNtpServer();
@@ -148,6 +151,13 @@ public class PolycomPhoneDefaults {
         return isDstEnabled() ? getZone().getStopTime() / 3600 : 0;
     }
 
+    @SettingEntry(paths = { "voIpProt.SIP/protocol/musicOnHold.uri", "voIpProt/reg/musicOnHold.uri" })
+    public String getMohUrl() {
+        String mohUri = m_defaults.getSipxServer().getMusicOnHoldUri(m_defaults.getDomainName());
+        return SipUri.stripSipPrefix(mohUri);
+
+    }
+
     @SettingEntry(path = "voIpProt/server/1/address")
     public String getRegistrationServer() {
         return m_defaults.getDomainName();
@@ -156,8 +166,7 @@ public class PolycomPhoneDefaults {
     @SettingEntry(path = "attendant/uri")
     public String getAttendantUri() {
         if (m_speedDial != null && m_speedDial.isBlf()) {
-            return SipUri.format(m_speedDial.getResourceListId(true), m_defaults.getDomainName(),
-                    false);
+            return SipUri.format(m_speedDial.getResourceListId(true), m_defaults.getDomainName(), false);
         }
         return null;
     }
@@ -168,5 +177,10 @@ public class PolycomPhoneDefaults {
             return "1";
         }
         return null;
+    }
+
+    @SettingEntry(path = "call/directedCallPickupString")
+    public String getDirectedCallPickupString() {
+        return m_defaults.getSipxServer().getSettingValue(DIRECTED_CALL_PICKUP);
     }
 }
