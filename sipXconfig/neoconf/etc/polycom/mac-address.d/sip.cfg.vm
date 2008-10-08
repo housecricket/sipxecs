@@ -1925,6 +1925,7 @@
       voice.headset.sidetone.adjust.IP_430="-3"
       voice.headset.sidetone.adjust.IP_650="-3"
     />
+#if ($phone.model.qualityMonitoringSupported)
     <qualityMonitoring>
 #set ($group = $cfg.EndpointSettings.getSetting('qualityMonitoring').getSetting('collector'))
         <collector
@@ -1951,6 +1952,7 @@
 #end
         />
     </qualityMonitoring>
+#end    
   </voice>
   <QOS>
     <Ethernet>
@@ -4863,7 +4865,14 @@
 #end
     />
   </microbrowser>
-  <pnet pnet.role=""/>
+#if ($phone.model.modelId == "polycom7000")
+  <pnet 
+#set ($group = $cfg.EndpointSettings.getSetting('pnet'))
+#foreach ($setting in $cfg.getSettings($group))
+      pnet.${setting.ProfileName}="$!{setting.Value}"
+#end          
+  />
+#end
   <usb>
       <set1
         usb.set1.device.1.vendor=""
