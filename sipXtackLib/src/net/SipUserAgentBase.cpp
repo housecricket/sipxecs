@@ -60,7 +60,7 @@ void SipUserAgentBase::addConfigChangeConsumer(OsMsgQ& messageQueue)
 void SipUserAgentBase::getContactUri(UtlString* contactUri)
 {
     contactUri->remove(0);
-    contactUri->append(mContactAddress);
+    contactUri->append(mContactURI);
 }
 
 /* ============================ INQUIRY =================================== */

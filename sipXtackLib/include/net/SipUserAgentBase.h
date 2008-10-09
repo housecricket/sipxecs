@@ -24,9 +24,6 @@
 #include <net/SipMessageEvent.h>
 #include <net/SipContactDb.h>
 
-
-
-
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -113,7 +110,7 @@ protected:
     int mUdpPort;
     int mTlsPort;
     UtlBoolean mMessageLogEnabled;
-    UtlString mContactAddress;
+    UtlString mContactURI;
     OsRWMutex mObserverMutex;
     UtlHashBag mConfigChangeObservers;
     SipContactDb mContactDb;

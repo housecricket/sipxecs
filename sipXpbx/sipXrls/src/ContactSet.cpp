@@ -62,9 +62,9 @@ ContactSet::ContactSet(ResourceCached* resource,
       addSubscription(mUri.data(),
                       REG_EVENT_TYPE,
                       REG_EVENT_CONTENT_TYPE,
-                      getResourceListServer()->getClientOutgoingAddress(),
+                      getResourceListServer()->getClientFromURI(),
                       mUri.data(),
-                      getResourceListServer()->getClientOutgoingAddress(),
+                      getResourceListServer()->getClientContactURI(),
                       getResourceListServer()->getResubscribeInterval(),
                       getResourceListSet(),
                       ResourceListSet::subscriptionEventCallbackAsync,
@@ -314,10 +314,10 @@ void ContactSet::notifyEventCallback(const UtlString* dialogHandle,
                      {
                         // Prepend the registration Call-Id and ';'.
                         uri_allocated->insert(0, ';');
-                        const char* cseq = contact_element->Attribute("callid");
-                        if (cseq)
+                        const char* call_id = contact_element->Attribute("callid");
+                        if (call_id)
                         {
-                           uri_allocated->insert(0, cseq);
+                           uri_allocated->insert(0, call_id);
                         }
 
                         // Check that we don't have too many contacts.
