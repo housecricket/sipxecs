@@ -733,7 +733,7 @@ SipRedirectorPickUp::lookUpDialog(
          // If "1 second subscriptions" is set (needed for some versions
          // of Snom phones), use a 1-second subscription.  Otherwise, use
          // a 0-second subscription, so we get just one NOTIFY.
-         subscribe.setExpiresField(mOneSecondSubscription ? 1 : 0);
+         subscribe.setExpiresField(mOneSecondSubscription ? 4 : 0);
          // Set the "Event: dialog" header.
          subscribe.setEventField("dialog");
          // Set the "Accept: application/dialog-info+xml" header.
