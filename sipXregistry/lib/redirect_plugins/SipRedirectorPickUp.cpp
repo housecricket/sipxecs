@@ -733,6 +733,10 @@ SipRedirectorPickUp::lookUpDialog(
          // If "1 second subscriptions" is set (needed for some versions
          // of Snom phones), use a 1-second subscription.  Otherwise, use
          // a 0-second subscription, so we get just one NOTIFY.
+         // XECS-1706: Using 4 (instead of 1) as quick fix to work-around 
+         //   Polycom 3.1.0 bug XTRN-231, until their fix is available.  
+         //   This change should die in the 3.10.3 stream, and never see 
+         //   the light of main.
          subscribe.setExpiresField(mOneSecondSubscription ? 4 : 0);
          // Set the "Event: dialog" header.
          subscribe.setEventField("dialog");
