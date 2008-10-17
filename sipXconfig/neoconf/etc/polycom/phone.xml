@@ -651,13 +651,13 @@
     </setting>
     <setting name="daylightSavings.start.month">
       <type refid="monthOfYear" />
-      <value>4</value>
+      <value>3</value>
     </setting>
     <setting name="daylightSavings.start.date">
       <type>
         <integer min="0" max="31" />
       </type>
-      <value>1</value>
+      <value>8</value>
     </setting>
     <setting name="daylightSavings.start.time">
       <type>
@@ -677,7 +677,7 @@
     </setting>
     <setting name="daylightSavings.stop.month">
       <type refid="monthOfYear" />
-      <value>10</value>
+      <value>11</value>
     </setting>
     <setting name="daylightSavings.stop.date">
       <type>
@@ -699,7 +699,7 @@
       <type>
         <boolean />
       </type>
-      <value>1</value>
+      <value>0</value>
     </setting>
   </group>
   <group name="tcpIpApp.port.rtp">
