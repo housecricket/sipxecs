@@ -1,3 +1,4 @@
+# Example usage of this file: ./polycom_ini_diff.rb DUMP_000000000000.ini DUMP_000000000650.ini | ./polycom_diff_subtract.rb diff_default_exceptions.csv
 # ParameterID, Reason Text
 meta-count.OverrideAttempts, Not actual configuration data # 
 meta-count.UniqueParameters, Not actual configuration data
