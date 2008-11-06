@@ -708,6 +708,14 @@ UtlBoolean SipSubscribeServer::handleNotifyResponse(const SipMessage& notifyResp
           OsSysLog::add(FAC_SIP, PRI_WARNING,
              "SipSubscribeServer::handleNotifyResponse Timeout NOTIFY response. Handle: %s",
              dialogHandle.data());
+
+          // RFC 3265 section 3.2.2 says that when a "NOTIFY request fails ... due to a timeout 
+          // condition ... the notifier SHOULD remove the subscription."  However, we feel this
+          // is a problem with the spec.  Endpoints that become temporarily unavailable and do not
+          // respond to the NOTIFY (or do not respond in time) should not cause the subscription 
+          // to be silently terminated.  True our deviation from the spec will cause subscriptions 
+          // to now-defunct subscribers to continue, but only until the subscription expires.  This 
+          // is far preferable to the alternative.
        } 
        else if (notifyResponse.getHeaderValue(0, SIP_RETRY_AFTER_FIELD) == NULL)
        { 
