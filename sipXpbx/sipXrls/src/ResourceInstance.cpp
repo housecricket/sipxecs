@@ -133,10 +133,10 @@ void ResourceInstance::notifyEventCallback(const UtlString* dialogHandle,
       const char* p = dialog_info_node->ToElement()->Attribute("state");
       if (p && strcmp(p, "full") == 0)
       {
-         // If the state is "full", delete the current state.
-         destroyXmlDialogs();
+         // If the state is "full", delete all non-terminated dialogs.  (XECS-1668)
+         destroyNonTerminatedXmlDialogs();
          OsSysLog::add(FAC_RLS, PRI_DEBUG,
-                       "ResourceInstance::notifyEventCallback clearing state");
+                       "ResourceInstance::notifyEventCallback all non-terminated dialogs");
       }
 
       // Find all the <dialog> elements.
@@ -458,7 +458,9 @@ UtlContainableType ResourceInstance::getContainableType() const
    return ResourceInstance::TYPE;
 }
 
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
+/* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+/* ============================ FUNCTIONS ================================= */
 
 // Destroy the contents of mXmlDialogs.
 void ResourceInstance::destroyXmlDialogs()
@@ -476,7 +478,50 @@ void ResourceInstance::destroyXmlDialogs()
    mXmlDialogs.destroyAll();
 }
 
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
+//! Destroy the non-Terminated contents of mXmlDialogs.
+void ResourceInstance::destroyNonTerminatedXmlDialogs()
+{
+   // Iterate through the contents.
+   UtlHashMapIterator itor(mXmlDialogs);
+   UtlContainable* id;
+   while ((id = itor()))
+   {
+      // The XML document for a single dialog.
+      UtlVoidPtr* value = dynamic_cast <UtlVoidPtr*> (itor.value());
+      TiXmlElement* dialog_element = static_cast <TiXmlElement*> (value->getValue());
+      if (NULL != dialog_element)
+      {
+         // Get the "state" XML node.
+         TiXmlNode* state = dialog_element->FirstChild("state");
+         if (NULL != state)
+         {
+            // Find the 'Text' child of the "state" node.  (In practise it will be the first
+            // and only child, but loop instead of making that assumption.)
+            TiXmlNode* child = state->FirstChild();
+            while (NULL != child)
+            {            
+               if (child->Type() == TiXmlNode::TEXT)
+               {
+                  // Is the state something other than terminated?
+                  TiXmlText* text = child->ToText();
+                  if (0 != strcmp(text->Value(), "terminated"))
+                  {
+                     // Yes, so destroy it.
+                     delete dialog_element;
+                     mXmlDialogs.destroy(itor.key());
+                  }
 
+                  // Stop looking at other children.
+                  child = NULL;
+               }
+               else
+               {
+                  // Advance to the next child.
+                  child = state->IterateChildren(child);
+               }
+            }
+         }
+      }
+   }
+}
 
-/* ============================ FUNCTIONS ================================= */
