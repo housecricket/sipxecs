@@ -417,6 +417,14 @@ public:
    
    SipUserAgent* getUserAgent() { return sipUserAgent;}
 
+   int cleanStuckCallsHack(unsigned long callParkMaxTimeSecs,   //xecs-1698 hack
+                           int callHeadRoomTrigger,
+                           int noChangeCleanTrigger);  
+   //: 3.10 hack to clean callStack for xecs-1698 hack
+   //: if callStack is longer than callBufferNeeded,
+   //: post drop message for calls older than callParkMaxTimeSecs
+
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
         TaoListenerDb**                 mpListeners;
@@ -458,6 +466,10 @@ private:
     UtlBoolean mIsRequredUserIdMatch;
     // mMaxCalls can be changed by code running in other threads.
     volatile int mMaxCalls;    
+    int mNumCallsLastClean;             // xecs-1698 hack
+                                        // Remember callStack size whenever we actually clean
+    int mNumCleanCntUnchanged;          // xecs-1698 hack
+                                        // Remember how many loops since the callStack size changed 
 
     UtlString mStunServer ;
     int mStunOptions ;

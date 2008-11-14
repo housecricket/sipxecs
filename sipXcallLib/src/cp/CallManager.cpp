@@ -130,7 +130,9 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
     mnTotalOutgoingCalls = 0;
     mMaxCalls = maxCalls ;
     mDelayInDeleteCall = 0;
-    
+    mNumCallsLastClean = 0;         // xecs-1698 hack
+    mNumCleanCntUnchanged = 0;      // xecs-1698 hack
+
     if (pMediaFactory)
     {
         mpMediaFactory = pMediaFactory;
@@ -3293,7 +3295,14 @@ void CallManager::printCalls()
         call = (CpCall*)callCollectable->getValue();
         if(call)
         {
-            OsSysLog::add(FAC_CP, PRI_DEBUG, "callStack[%d] = %p ", callIndex, call);
+            UtlString callId, origCID, targCID;
+
+            call->getCallId(callId);
+            call->getOriginalCallId(origCID);
+            call->getTargetCallId(targCID);
+
+            OsSysLog::add(FAC_CP, PRI_DEBUG, "callStack[%d] = %p id='%s' orig='%s' targ='%s' time=%ds", 
+                          callIndex, call, callId.data(), origCID.data(), targCID.data(), call->getElapsedTime());
             OsSysLog::add(FAC_CP, PRI_DEBUG, "shutting down: %d started: %d suspended: %d\n",
                 call->isShuttingDown(),
                 call->isStarted(), call->isSuspended());
@@ -3304,7 +3313,7 @@ void CallManager::printCalls()
     }
     if(callIndex == 0)
     {
-        OsSysLog::add(FAC_CP, PRI_DEBUG, "No calls on the stack\n");
+        OsSysLog::add(FAC_CP, PRI_DEBUG, "No calls on the stack (max=%d)\n", mMaxCalls);
     }
 
 }
@@ -3877,6 +3886,78 @@ void CallManager::setDelayInDeleteCall(int delayInDeleteCall)
 int CallManager::getDelayInDeleteCall()
 {
     return mDelayInDeleteCall;
+}
+
+
+// 3.10 hack to clean callStack for XECS-1698
+int CallManager::cleanStuckCallsHack(unsigned long callParkMaxTimeSecs, 
+                                     int callHeadRoomTrigger,
+                                     int noChangeCleanTrigger)
+{
+    int callsKept = 0, callsGone = 0;
+    int numCalls = getCallStackSize();
+
+    // Drop old calls once callStack list gets "close" to max
+    // or if nothing is happening on the park server
+    if( numCalls != 0 
+        && (   numCalls >= callHeadRoomTrigger
+            || mNumCleanCntUnchanged > noChangeCleanTrigger ))
+    {
+    
+        OsReadLock lock(mCallListMutex);
+    
+        // Create an iterator to sequence through callStack.
+        UtlSListIterator iterator(callStack);
+        UtlInt* callRemovable;
+        CpCall* callCheck;
+        UtlString dropCallId;
+    
+        while ((callRemovable = dynamic_cast <UtlInt *> (iterator())) != NULL)
+        {
+            callCheck = (CpCall*)callRemovable->getValue();
+            if (callCheck)
+            {
+                unsigned long callTimeSecs = callCheck->getElapsedTime();
+    
+                if (callTimeSecs >= callParkMaxTimeSecs)
+                {
+                    callCheck->getCallId(dropCallId);
+                    drop(dropCallId);
+                    callsGone++;
+                    OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::cleanStuckCallsHack- drop call-id '%s' (time %lu)\n", 
+                                  dropCallId.data(), callTimeSecs);
+                }
+                else 
+                {
+                    callsKept++;
+                }
+            }
+        }
+        OsSysLog::add(FAC_CP, PRI_DEBUG,
+                          "CallManager::cleanStuckCallsHack maxEntries = %d currEntries = %d to drop= %d kept = %d",
+                          mMaxCalls, callStack.entries(), callsGone, callsKept);
+        if (callsGone == 0)
+        {
+            OsSysLog::add(FAC_CP, PRI_WARNING,
+                              "CallManager::cleanStuckCallsHack -nearly full, nothing to drop; maxEntries = %d currEntries = %d",
+                              mMaxCalls, callStack.entries());
+        }
+        mNumCallsLastClean = numCalls;  // Remember callStack size whenever we actually clean 
+        mNumCleanCntUnchanged = 0;      // Reset loop count since size will change now
+    }
+    else if( numCalls != 0)
+    {
+        if (numCalls == mNumCallsLastClean) // callStack size unchanged
+        {
+            mNumCleanCntUnchanged++;        // count toward clean-sweep trigger
+        }
+        else
+        {
+            mNumCallsLastClean = numCalls;  // size changed, parkServer is active
+            mNumCleanCntUnchanged = 0;      // reset loop count
+        }
+    }
+    return(callsGone);
 }
 
 /* ============================ FUNCTIONS ================================= */

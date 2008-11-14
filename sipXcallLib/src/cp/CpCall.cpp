@@ -20,6 +20,8 @@
 #include <os/OsQueuedEvent.h>
 #include <os/OsEventMsg.h>
 #include "os/OsSysLog.h"
+#include <os/OsDateTime.h>
+#include <os/OsTimer.h>
 #include <cp/CpCall.h>
 #include <mi/CpMediaInterface.h>
 #include <cp/CpMultiStringMessage.h>
@@ -59,6 +61,11 @@ OsServerTask("Call-%d", NULL, DEF_MAX_MSGS, DEF_PRIO, DEF_OPTIONS, CALL_STACK_SI
 mCallIdMutex(OsMutex::Q_FIFO),
 mDtmfQMutex(OsMutex::Q_FIFO)
 {
+    // Set the call's start time to now
+    OsDateTime nowTime;
+    OsDateTime::getCurTime(nowTime);
+    nowTime.cvtToTimeSinceEpoch(mCallTimeStart);    // xecs-1698 hack
+
     // add the call task name to a list so we can track leaked calls.
     UtlString strCallTaskName = getName();
     addToCallTrackingList(strCallTaskName);
@@ -1701,4 +1708,21 @@ int CpCall::getCallTrackingListCount()
 
     return numCalls;
 }
+
+// xecs-1698 hack
+unsigned long CpCall::getElapsedTime(void)
+{
+   unsigned long idleSeconds;
+   OsTime     nowSeconds;
+   OsDateTime nowTime;
+
+   OsDateTime::getCurTime(nowTime);
+   nowTime.cvtToTimeSinceEpoch(nowSeconds);
+
+   idleSeconds = nowSeconds.seconds() - mCallTimeStart.seconds();
+
+   return idleSeconds;
+}
+
+
 

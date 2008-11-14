@@ -632,7 +632,17 @@ UtlBoolean OrbitListener::handleMessage(OsMsg& rMsg)
       }
    }
 
-#if 0
+   if (OsSysLog::willLog(FAC_PARK, PRI_DEBUG))
+   {
+       dumpCallsAndTransfers();
+   }
+
+   return TRUE;
+}
+
+
+void OrbitListener::dumpCallsAndTransfers()
+{
    // Dump mCalls and mTransferCalls.
    {
       UtlHashMapIterator iterator(mCalls);      
@@ -645,7 +655,7 @@ UtlBoolean OrbitListener::handleMessage(OsMsg& rMsg)
             const char *o = pCall->getOriginalCallId();
             const char *c = pCall->getCurrentCallId();
             OsSysLog::add(FAC_PARK, PRI_DEBUG,
-                          "OrbitListener::handleMessage "
+                          "OrbitListener::dumpCallsAndTransfers "
                           "D ParkedCallObject(originalCallId = '%s', "
                           "currentCallId = '%s', isPickupCall = %d, seqNo = %d) ",
                           o,
@@ -660,16 +670,13 @@ UtlBoolean OrbitListener::handleMessage(OsMsg& rMsg)
       while ((pKey = dynamic_cast <UtlString*> (iterator())))
       {
          OsSysLog::add(FAC_PARK, PRI_DEBUG,
-                       "OrbitListener::handleMessage D mTransferCalls('%s', '%s')",
+                       "OrbitListener::dumpCallsAndTransfers D mTransferCalls('%s', '%s')",
                        pKey->data(),
                        (dynamic_cast <UtlString*> (mTransferCalls.findValue(pKey)))->data());
       }
    }
    OsSysLog::add(FAC_PARK, PRI_DEBUG,
-                 "OrbitListener::handleMessage D end");
-#endif /* 0 */
-
-   return TRUE;
+                 "OrbitListener::dumpCallsAndTransfers D end");
 }
 
 
@@ -712,7 +719,7 @@ OsStatus OrbitListener::validateOrbit(const UtlString& callId,
    }
 
    OsSysLog::add(FAC_PARK, PRI_DEBUG,
-                 "OrbitListener::validaleOrbit request URI '%s', orbit '%s'",
+                 "OrbitListener::validateOrbit request URI '%s', orbit '%s'",
                  request.data(), orbit.data());
 
    audio = "";

@@ -69,9 +69,13 @@
 #define CONFIG_SETTING_RTP_PORT       "SIP_PARK_RTP_PORT"
 #define CONFIG_SETTING_CODECS         "SIP_PARK_CODEC_LIST"
 #define CONFIG_SETTING_MAX_SESSIONS   "SIP_PARK_MAX_SESSIONS"
+#define CONFIG_SETTING_SESSIONS_HEADROOM "SIP_PARK_SESSIONS_HEADROOM" // xecs-1698 hack
 #define CONFIG_SETTING_LIFETIME       "SIP_PARK_LIFETIME"
 #define CONFIG_SETTING_BLIND_WAIT     "SIP_PARK_BLIND_XFER_WAIT"
 #define CONFIG_SETTING_KEEPALIVE_TIME "SIP_PARK_KEEPALIVE_TIME"
+#define CONFIG_SETTING_MAXPARK_TIME   "SIP_PARK_MAXPARK_TIME" // xecs-1698 hack
+#define CONFIG_SETTING_CLEANLOOP_WAIT_TIME "SIP_PARK_CLEANLOOP_WAIT_TIME" // xecs-1698 hack
+#define CONFIG_SETTING_CLEAN_ON_NO_CHANGE  "SIP_PARK_CLEAN_ON_NO_CHANGE" // xecs-1698 hack
 
 const char* PARK_SERVER_ID_TOKEN = "~~id~park"; // see sipXregistry/doc/service-tokens.txt
 
@@ -85,6 +89,8 @@ const char* PARK_SERVER_ID_TOKEN = "~~id~park"; // see sipXregistry/doc/service-
 #define DEFAULT_CODEC_LIST            "pcmu pcma telephone-event"
 
 #define DEFAULT_MAX_SESSIONS          50         // Max number of sim. conns
+#define DEFAULT_SESSIONS_HEADROOM     10          // Buffer of free sessions for stuck calls bug xecs-1698 hack
+
 #define MP_SAMPLE_RATE                8000       // Sample rate (don't change)
 #define MP_SAMPLES_PER_FRAME          80         // Frames per second (don't change)
 
@@ -101,6 +107,17 @@ const char* PARK_SERVER_ID_TOKEN = "~~id~park"; // see sipXregistry/doc/service-
                                                  // This is not configurable via
                                                  // sipxpark-config, as a cons. xfer.
                                                  // should succeed or fail immediately.
+#define DEFAULT_MAXPARK_TIME          3600       // (secs) time to allow call on park xecs-1698 hack
+                                                 // before deleting - default is 1 hour  
+#define DEFAULT_CLEANLOOP_WAIT_TIME   120        // (secs) loop wait time before checking // xecs-1698 hack
+                                                 // if callStack clean-up criteria are met
+                                                 // - default is 120 secs  
+#define DEFAULT_CLEAN_ON_NO_CHANGE    600        // (counter), number of "clean-loops-with-        // XECS-1698 hack
+                                                 // -no-change-to-size-of-callStack" before cleaning
+                                                 // old calls when size is less than headroom trigger;
+                                                 // multiply in your head by CLEANLOOP_WAIT_TIME 
+                                                 // to know how long callStack waits before we do a full sweep  
+                                                 // default count is 600 => is 10 hours  
 
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -404,6 +421,14 @@ int main(int argc, char* argv[])
     if (configDb.get(CONFIG_SETTING_MAX_SESSIONS, MaxSessions) != OS_SUCCESS)
         MaxSessions = DEFAULT_MAX_SESSIONS;
 
+    // xecs-1698 hack
+    int SessionsHeadRoom, MaxSessionsPlusHeadRoom;
+//    if (configDb.get(CONFIG_SETTING_SESSIONS_HEADROOM, SessionsHeadRoom) != OS_SUCCESS)
+    {
+        SessionsHeadRoom = DEFAULT_SESSIONS_HEADROOM;
+    }
+    MaxSessionsPlusHeadRoom = MaxSessions + SessionsHeadRoom;
+
     UtlString   domain;
     UtlString   realm;
     UtlString   user;
@@ -544,6 +569,27 @@ int main(int argc, char* argv[])
     {
        KeepAliveTime = DEFAULT_KEEPALIVE_TIME;
     }
+    // xecs-1698 hack
+    int MaxParkTime; 
+ //   if (configDb.get(CONFIG_SETTING_MAXPARK_TIME, MaxParkTime) != OS_SUCCESS)
+    {
+       MaxParkTime = DEFAULT_MAXPARK_TIME;
+    }
+    // xecs-1698 hack
+    int CleanLoopWaitTimeSecs; 
+//    if (configDb.get(CONFIG_SETTING_CLEANLOOP_WAIT_TIME, CleanLoopWaitTimeSecs) != OS_SUCCESS)
+    {
+       CleanLoopWaitTimeSecs = DEFAULT_CLEANLOOP_WAIT_TIME;
+    }
+
+    // xecs-1698 hack
+    int noChangeCleanTrigger;                 // xecs-1698 hack
+//    if (configDb.get(CONFIG_SETTING_CLEAN_ON_NO_CHANGE, noChangeCleanCount) != OS_SUCCESS)
+    {
+        noChangeCleanTrigger = DEFAULT_CLEAN_ON_NO_CHANGE;
+    }
+ 
+
     // This is not configurable, as consultative transfers should
     // succeed or fail immediately.
     ConsXferWait = CONS_XFER_WAIT;
@@ -581,9 +627,10 @@ int main(int argc, char* argv[])
     SdpCodecFactory codecFactory;
     initCodecs(&codecFactory, &configDb);
 
-    // Initialize and start up the media subsystem
-    mpStartUp(MP_SAMPLE_RATE, MP_SAMPLES_PER_FRAME, 6 * MaxSessions, &configDb);
-    MpMediaTask::getMediaTask(MaxSessions);
+    // Initialize and start up the media subsystem 
+    // xecs-1698 hack changes
+    mpStartUp(MP_SAMPLE_RATE, MP_SAMPLES_PER_FRAME, 6 * MaxSessionsPlusHeadRoom, &configDb);
+    MpMediaTask::getMediaTask(MaxSessionsPlusHeadRoom);
 
 #ifdef INCLUDE_RTCP
     CRTCManager::getRTCPControl();
@@ -612,7 +659,8 @@ int main(int argc, char* argv[])
                            TRUE,                              // early media in 180 ringing
                            &codecFactory,
                            RtpBase,                           // rtp start
-                           RtpBase + (2 * MaxSessions),       // rtp end
+                           // xecs-1698 hack change
+                           RtpBase + (2 * MaxSessionsPlusHeadRoom),       // rtp end 
                            localAddress,
                            localAddress,
                            userAgent, 
@@ -633,7 +681,8 @@ int main(int argc, char* argv[])
                            "",                                // pLocal
                            CP_MAXIMUM_RINGING_EXPIRE_SECONDS, // inviteExpiresSeconds
                            QOS_LAYER3_LOW_DELAY_IP_TOS,       // expeditedIpTos
-                           MaxSessions,                       // maxCalls
+                           // xecs-1698 hack change
+                           MaxSessionsPlusHeadRoom,                       // maxCalls
                            sipXmediaFactoryFactory(NULL));    // CpMediaInterfaceFactory
 
 
@@ -666,9 +715,40 @@ int main(int argc, char* argv[])
     callManager.start();
    
     // Loop forever until signaled to shut down
+
+    // xecs-1698 hack
+    // Every <nominal 2 minutes> try to clean out old "parked" calls 
+    int numTwoSecIntervals = 0;
+    unsigned long callParkMaxTimeSecs = (unsigned long )MaxParkTime;
+
+    OsSysLog::add(FAC_CP, PRI_INFO, "main: callStack clean loop runs at %d secs: maxParkTime=%ds, max calls=%d, headRoomTrigger=%d, noChangeCleanTime=%ds",
+                               CleanLoopWaitTimeSecs,
+                               MaxParkTime,
+                               MaxSessionsPlusHeadRoom,
+                               MaxSessions, 
+                               noChangeCleanTrigger*CleanLoopWaitTimeSecs);
+
     while (!gShutdownFlag)
     {
        OsTask::delay(2000);
+
+       if (2*numTwoSecIntervals >= CleanLoopWaitTimeSecs)
+       {
+           numTwoSecIntervals = 0;
+           if (OsSysLog::willLog(FAC_PARK, PRI_DEBUG))
+           {
+               callManager.printCalls() ;
+               listener.dumpCallsAndTransfers();
+           }
+           callManager.cleanStuckCallsHack(callParkMaxTimeSecs, 
+                                           MaxSessions, 
+                                           noChangeCleanTrigger);
+       }
+       else
+       {
+           numTwoSecIntervals += 1;
+       }
+
     }
 
     // Flush the log file
