@@ -320,8 +320,13 @@ public:
                                                     notifyCallback,
                                                     earlyDialogHandle));
 
-         // Wait 1 second for the callbacks to happen.
-         OsTask::delay(1000);
+         // Wait 3 seconds for the callbacks to happen.
+         OsTask::delay(3000);
+
+         CPPUNIT_ASSERT_MESSAGE("Subscription state callback data missing.", 
+            !smClientSubEarlyDialog.isNull() && !smClientSubEstablishedDialog.isNull());
+         CPPUNIT_ASSERT_MESSAGE("Notify callback data missing.", 
+            !smClientNotifyEarlyDialog.isNull() && !smClientNotifyEstablishedDialog.isNull());
 
          CPPUNIT_ASSERT_MESSAGE("Early dialog handles are different.",
                                 compareHandles(smClientSubEarlyDialog.data(),
