@@ -279,12 +279,20 @@ EnforceAuthRules::authorizeAndModify(const SipRouter* sipRouter,  ///< for acces
    }
    else
    {
-      // Some earlier plugin already authorized this - don't waste time figuring it out.
+      // Some earlier plugin already provided an authoritative result for this request - don't waste time figuring it out.
       result = priorResult;
       OsSysLog::add(FAC_AUTH, PRI_DEBUG, "EnforceAuthRules[%s]::authorizeAndModify "
                     "prior authorization result %s for call %s - rules skipped",
                     mInstanceName.data(), AuthResultStr(priorResult), callId.data()
                     );
+      if( priorResult == ALLOW )
+      {
+         // Add auth parameter to the RouteState to mark the request as authorized. (see XECS-687) 
+         if( routeState.isMutable() )
+         {
+            routeState.setParameter(mInstanceName.data(),RULES_ENFORCED_ROUTE_PARAM,unused);
+         }
+      }
    }
    
    return result;
