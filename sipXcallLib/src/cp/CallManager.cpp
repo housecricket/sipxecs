@@ -895,7 +895,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
         case CP_UNHOLD_TERM_CONNECTION:
         case CP_RENEGOTIATE_CODECS_CONNECTION:
         case CP_RENEGOTIATE_CODECS_ALL_CONNECTIONS:
-        case CP_SEND_KEEPALIVE:
         case CP_SET_CODEC_CPU_LIMIT:
         case CP_GET_CODEC_CPU_LIMIT:
         case CP_GET_CODEC_CPU_COST:
@@ -2677,12 +2676,6 @@ void CallManager::renegotiateCodecsAllTerminalConnections(const char* callId)
 {
     CpMultiStringMessage renegotiateMessage(CP_RENEGOTIATE_CODECS_ALL_CONNECTIONS, callId);
     postMessage(renegotiateMessage);
-}
-
-void CallManager::sendKeepAlive(const char* callId, UtlBoolean useOptionsForKeepalive)
-{
-    CpMultiStringMessage keepAliveMessage(CP_SEND_KEEPALIVE, callId, NULL, NULL, NULL, NULL, useOptionsForKeepalive);
-    postMessage(keepAliveMessage);
 }
 
 UtlBoolean CallManager::isTerminalConnectionLocal(const char* callId, const char* address, const char* terminalId)

@@ -49,9 +49,7 @@ public:
           // The timeout was reached for the maximum lifetime of a parked call.
           MAXIMUM_TIMEOUT,
           // The current transfer operation has timed out.
-          TRANSFER_TIMEOUT,
-          // The keepalive timer
-          KEEPALIVE_TIMEOUT
+          TRANSFER_TIMEOUT
        };
 
 /* ============================ CREATORS ================================== */
@@ -64,8 +62,7 @@ public:
                     bool bPickup,
                     OsMsgQ* listenerQ,
                     const OsTime& lifetime,
-                    const OsTime& blindXferWait,
-                    const OsTime& keepAliveTime);
+                    const OsTime& blindXferWait);
    /// Destroy the ParkedCallObject.
    // Also calls stopEscapeTimer().
    ~ParkedCallObject();
@@ -123,9 +120,6 @@ public:
 
    // Signal that a transfer attempt for a call has ended.
    void clearTransfer();
-
-   // Send a keep alive signal back to the caller.
-   void sendKeepAlive(const char * mohUserPart);
 
    // Determine if a transfer attempt is in progress.
    UtlBoolean transferInProgress();
@@ -207,9 +201,6 @@ private:
 
     // Deadman timer for transfer attempts.
     OsTimer mTransferTimer;     ///< OsTimer to detect failed transfer attempts.
-
-    // Keepalive timer.
-    OsTimer mKeepAliveTimer;     ///< OsTimer to trigger periodic keepalives.
 
     // Support for processing DTMF events.
     OsQueuedEvent mDtmfEvent;

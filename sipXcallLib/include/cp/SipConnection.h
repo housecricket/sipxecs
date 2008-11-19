@@ -119,8 +119,6 @@ public:
 
     virtual UtlBoolean renegotiateCodecs();
 
-    virtual UtlBoolean sendKeepAlive(UtlBoolean useOptionsForKeepalive);
-
     virtual UtlBoolean accept(int forwardOnNoAnswerTimeOut);
 
     virtual UtlBoolean reject(int errorCode, const char* errorText);
@@ -230,7 +228,6 @@ private:
     UtlString mFromTag;
     SipMessage* inviteMsg;
     UtlBoolean      mbCancelling;
-    UtlBoolean mWaitingForKeepAliveResponse;
 
     SipMessage* mReferMessage;
     UtlBoolean inviteFromThisSide;

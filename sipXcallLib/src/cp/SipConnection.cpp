@@ -82,7 +82,6 @@ SipConnection::SipConnection(const char* outboundLineAddress,
     reinviteState = ACCEPT_INVITE;
     mIsEarlyMediaFor180 = isEarlyMediaFor180Enabled;
     mDropping = FALSE ;
-    mWaitingForKeepAliveResponse = FALSE;
 
     // Build a from tag
     int fromTagInt = rand();
@@ -1279,40 +1278,6 @@ UtlBoolean SipConnection::offHold()
 UtlBoolean SipConnection::renegotiateCodecs()
 {
     return(doOffHold(TRUE));
-}
-
-UtlBoolean SipConnection::sendKeepAlive(UtlBoolean useOptionsForKeepalive)
-{
-    if(!useOptionsForKeepalive)
-    {
-        return(doOffHold(TRUE));
-    }
-    else if(getState() == CONNECTION_ESTABLISHED &&
-            mTerminalConnState == PtTerminalConnection::TALKING)
-    {
-        SipMessage sipOptionsMessage;
-        UtlString fromAddress;
-        UtlString toAddress;
-        UtlString callId;
-        UtlString uri ;
-   
-        mToUrl.getUri(uri) ;
-        getFromField(&fromAddress);
-        getRemoteAddress(&toAddress);
-        getCallId(&callId);
-        sipOptionsMessage.setRequestData(SIP_OPTIONS_METHOD, uri, fromAddress, toAddress, callId);
-        sipOptionsMessage.setContactField(mLocalContact.data());
-        sipOptionsMessage.setContentLength(0);
-        sipOptionsMessage.setHeaderValue("Accept", "application/sdp");
-        sipOptionsMessage.setCSeqField(++lastLocalSequenceNumber, SIP_OPTIONS_METHOD);
-        sipOptionsMessage.setRouteField(mRouteField.data());
-       
-        mWaitingForKeepAliveResponse=TRUE;
-      
-        return( send(sipOptionsMessage, sipUserAgent->getMessageQueue()) );
-    }
-    
-    return (FALSE);
 }
 
 UtlBoolean SipConnection::doOffHold(UtlBoolean forceReInvite)
@@ -5036,16 +5001,6 @@ void SipConnection::processOptionsResponse(const SipMessage* response)
     else if(responseCode > SIP_OK_CODE &&
         lastLocalSequenceNumber == sequenceNum)
     {
-        if( mWaitingForKeepAliveResponse &&
-           (responseCode == SIP_NOT_FOUND_CODE ||
-           responseCode == SIP_REQUEST_TIMEOUT_CODE ||
-           responseCode == SIP_BAD_TRANSACTION_CODE))
-        {
-            // We got an error response from the far end for an in-dialog OPTION we send.
-            // This indicates that the far-end was unable to find the dialog associated 
-            // with this call. Mark this call as failed.
-            setState(CONNECTION_FAILED, CONNECTION_REMOTE, CONNECTION_CAUSE_UNKNOWN);
-        }
         response->getAllowField(mAllowedRemote);
 
         // Assume default minimum
@@ -5060,10 +5015,6 @@ void SipConnection::processOptionsResponse(const SipMessage* response)
         responseText.data(),
         lastLocalSequenceNumber);
 #endif
-
-    // Reset the keepalive response flag
-    mWaitingForKeepAliveResponse=FALSE;
-
 } // End of processOptionsResponse
 
 void SipConnection::processByeResponse(const SipMessage* response)
