@@ -3693,18 +3693,32 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
             mpRequest &&
             mRequestMethod.compareTo(SIP_INVITE_METHOD) == 0)
         {
-            SipMessage cancel;
-
-            cancel.setCancelData(mpRequest);
-#ifdef TEST_PRINT
-            OsSysLog::add(FAC_SIP, PRI_DEBUG,
-                          "SipTransaction::handleIncoming sending cancel after receiving first provisional response");
-#endif
-            handleOutgoing(cancel,
-                           userAgent,
-                           transactionList,
-                           MESSAGE_CANCEL);
-        }     // end send delayed cancel now that we got provo response
+            if (mpCancel)
+            {
+                // mpCancel is populated when doFirstSend calls addResponse, so
+                // mpCancel != 0 means that a CANCEL was already sent.
+                // This test could be put in the previous 'if', but it
+                // is separate to allow this debug message.
+                OsSysLog::add(FAC_SIP, PRI_WARNING,
+                              "SipTransaction::handleIncoming "
+                              "got provisional response but already sent CANCEL");
+            }
+            else
+            {
+                SipMessage cancel;
+    
+                cancel.setCancelData(mpRequest);
+    #ifdef TEST_PRINT
+                OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                              "SipTransaction::handleIncoming "
+                              "sending CANCEL after receiving first provisional response");
+    #endif
+                handleOutgoing(cancel,
+                               userAgent,
+                               transactionList,
+                               MESSAGE_CANCEL);
+            }
+        }     // end send delayed CANCEL now that we got provisional response
 
         // Incoming CANCEL, respond and cancel children
         else if(mIsServerTransaction &&
