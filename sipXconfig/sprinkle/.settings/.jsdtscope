@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.wst.jsdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.wst.jsdt.launching.baseBrowserLibrary"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.wst.jsdt.USER_LIBRARY/jquery"/>
+	<classpathentry kind="con" path="org.eclipse.wst.jsdt.USER_LIBRARY/mootools"/>
+	<classpathentry kind="lib" path="lib"/>
+	<classpathentry kind="output" path=""/>
+</classpath>
