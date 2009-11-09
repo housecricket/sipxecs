@@ -209,6 +209,8 @@ public class Gateway {
     
     private static int oldStunPort = -1;
 
+    private static HashSet<String> supportedTransports = new HashSet<String>(); 
+
     // ///////////////////////////////////////////////////////////////////////
 
     /**
@@ -271,24 +273,7 @@ public class Gateway {
      */
     static void initializeLogging() throws SipXbridgeException {
         try {
-            String log4jPropertiesFile = Gateway.configurationPath
-                    + "/log4j.properties";
-
-            if (new File(log4jPropertiesFile).exists()) {
-                /*
-                 * Override the file configuration setting.
-                 */
-                Properties props = new Properties();
-                props.load(new FileInputStream(log4jPropertiesFile));
-                BridgeConfiguration configuration = Gateway.accountManager
-                        .getBridgeConfiguration();
-                String level = props
-                        .getProperty("log4j.category.org.sipfoundry.sipxbridge");
-                if (level != null) {
-                    configuration.setLogLevel(level);
-                }
-
-            }
+           
             BridgeConfiguration bridgeConfiguration = Gateway
                     .getBridgeConfiguration();
             Level level = Level.OFF;
@@ -555,15 +540,18 @@ public class Gateway {
             ListeningPoint externalUdpListeningPoint = ProtocolObjects
                     .getSipStack().createListeningPoint(externalAddress,
                             externalPort, "udp");
+            Gateway.supportedTransports.add("udp");
             ListeningPoint externalTcpListeningPoint = ProtocolObjects
                     .getSipStack().createListeningPoint(externalAddress,
                             externalPort, "tcp");
+            Gateway.supportedTransports.add("tcp");
             if (Gateway.isTlsSupportEnabled) {
                 ListeningPoint externalTlsListeningPoint = ProtocolObjects
                         .getSipStack().createListeningPoint(externalAddress,
                                 externalPort + 1, "tls");
                 externalTlsProvider = ProtocolObjects.getSipStack()
                         .createSipProvider(externalTlsListeningPoint);
+                Gateway.supportedTransports.add("tls");
             }
             externalProvider = ProtocolObjects.getSipStack().createSipProvider(
                     externalUdpListeningPoint);
@@ -1288,7 +1276,10 @@ public class Gateway {
         }
         return symmitronClient;
     }
-
+    public static HashSet<String> getSupportedTransports() {
+       return Gateway.supportedTransports ;
+     }
+    
     /**
      * The set of codecs handled by the park server.
      * 
@@ -1379,5 +1370,7 @@ public class Gateway {
         }
 
     }
+
+   
 
 }

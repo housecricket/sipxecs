@@ -82,6 +82,8 @@ public class ProtocolObjects {
                 /*
                  * At TRACE level you get a LOT of logging.
                  */
+                stackProperties.setProperty(
+                        "gov.nist.javax.sip.LOG_STACK_TRACE_ON_MESSAGE_SEND", "true");
                 stackProperties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", Level.DEBUG
                         .toString());
             }
